@@ -1,0 +1,57 @@
+#include <iostream>
+
+using namespace std;
+
+const int boardX = 4;
+const int boardY = 4;
+
+class Square
+{
+private:
+	bool isBomb;
+	bool isHidden;
+	bool isOccupied;
+	int adjacentBombs;
+public:
+	Square();
+	int getSquareType();
+	bool getVisibility();
+};
+
+Square :: Square()
+{
+
+}
+
+Square :: getSquareType();
+{
+
+}
+
+class player
+{
+private:
+
+public:
+
+};
+
+int main()
+{
+	return 0;
+}
+
+
+void drawBoard()
+{
+	Square board[boardX][boardY];
+	for(int i = 0; i < boardX; i++)
+	{
+		for(int j = 0; j < boardY; j++)
+		{
+			if(board[boardX][boardY].getSquareType() != )
+		}
+	}
+}
+
+void 
