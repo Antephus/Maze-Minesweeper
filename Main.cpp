@@ -15,14 +15,14 @@ private:
 	int adjacentBombs;
 public:
 	Square();
-	char getBombStatus();
+	bool getBombStatus();
 	void setBomb(bool);
 	void setHint(int);
 	bool getVisibility();
 	int getHint();
 };
 
-Square :: Square()
+Square::Square()
 {
 	isBomb = false;
 	isHidden = false;
@@ -30,22 +30,22 @@ Square :: Square()
 	adjacentBombs = 0;
 }
 
-bool Square :: getSquareType()
+bool Square::getBombStatus()
 {
 	return isBomb;
 }
 
-void Square :: setBomb(bool givenSet)
+void Square::setBomb(bool givenSet)
 {
 	isBomb = givenSet;
 }
 
-void Square :: setHint(int calculatedHint)
+void Square::setHint(int calculatedHint)
 {
 	adjacentBombs = calculatedHint;
 }
 
-int Square :: getHint()
+int Square::getHint()
 {
 	return adjacentBombs;
 }
@@ -58,14 +58,14 @@ public:
 
 };
 
-void generateBoard(Square board[boardX][boardY]);
-void drawBoard(Square board[boardX][boardY]);
-void setHint(Square board[boardX][boardY], int, int);
+void generateBoard(Square board[ROWS][COLS]);
+void drawBoard(Square board[ROWS][COLS]);
+void setHint(Square board[ROWS][COLS], int, int);
 
 int main()
 {
 	srand(time(NULL));
-	Square board[boardX][boardY];
+	Square board[ROWS][COLS];
 	generateBoard(board);
 	drawBoard(board);
 	return 0;
@@ -73,11 +73,11 @@ int main()
 
 void generateBoard(Square board[ROWS][COLS])
 {
-	for(int i = 0; i < ROWS; i++)
+	for (int i = 0; i < ROWS; i++)
 	{
-		for(int j = 0; j < COLS; j++)
+		for (int j = 0; j < COLS; j++)
 		{
-			bool setTo = rand()%2;
+			bool setTo = rand() % 2;
 			board[i][j].setBomb(setTo);
 		}
 	}
@@ -85,13 +85,13 @@ void generateBoard(Square board[ROWS][COLS])
 
 void drawBoard(Square board[ROWS][COLS])
 {
-	for(int i = 0; i < ROWS; i++)
+	for (int i = 0; i < ROWS; i++)
 	{
-		for(int j = 0; j < COLS; j++)
+		for (int j = 0; j < COLS; j++)
 		{
-			cout << "|" 
-			     << board[i][j].getSquareType()
-				 << "|";
+			cout << "|"
+				<< board[i][j].getBombStatus()
+				<< "|";
 		}
 		cout << endl;
 	}
@@ -100,35 +100,29 @@ void drawBoard(Square board[ROWS][COLS])
 
 int calculateAdjacentBombs(int chosenRow, int chosenCol, Square board[ROWS][COLS])
 {
-	int bombCount;
+	int bombCount = 0;
 	int currentRow = chosenRow - 1;
 	int currentCol = chosenCol - 1;
 
-	// For every row
-	for (int r = 0; r <= 3; r++)
+	// For every row around the chosen square, as long as we're not at the top/bottom edge of the board...
+	for (int row = 0; row <= 3; row++)
 	{
-		// If the current row exists (isn't outwith the bounds of the board)
-		if (currentRow >= 0 && currentRow <= boardRows)
+		if (currentRow >= 0 && currentRow <= ROWS)
 		{
-			//For every column
-			for (int c = 0; col <= 3; c++)
+			// For every column around the chosen square, as long as we're not at the right/left edge of the board...
+			for (int col = 0; col <= 3; col++)
 			{
-
-				// If the current column exists (isn't outwith the bounds of the board)
-				if (col >= 0 && col <= boardCols)
+				if (currentCol >= 0 && currentCol <= COLS)
 				{
-
-					// As long as the current square isn't the one originally selected and it has a bomb, add 1 to the bomb counter
+					// If the current square isn't the one originally selected, and it has a bomb, add 1 to the bomb counter
 					if (!(currentRow == chosenRow && currentCol == chosenCol) && board[currentRow][currentCol].getBombStatus())
 						bombCount++;
-
-					// Move on to next col
-					col++;
 				}
-
-				// Move on to next row
-				row++;
+				col++;
 			}
 		}
+		row++;
 	}
+
+	return bombCount;
 }
