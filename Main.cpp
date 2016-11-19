@@ -73,12 +73,25 @@ int main()
 
 void generateBoard(Square board[ROWS][COLS])
 {
+	int totalBombs = ROWS * 2;
+	int rowBombs = ROWS - 1;
+	int columnBombs[COLS];
+	for (int column = 0; column < COLS; column++)
+		columnBombs[column] = COLS - 1;
+
 	for (int i = 0; i < ROWS; i++)
 	{
+		if (totalBombs > 0)
+			rowBombs = ROWS - 1;
+
 		for (int j = 0; j < COLS; j++)
 		{
 			bool setTo = rand() % 2;
-			board[i][j].setBomb(setTo);
+			if (rowBombs > 0 && columnBombs[j] > 0 && totalBombs > 0 && setTo == true)
+			{
+				board[i][j].setBomb(setTo);
+				rowBombs--; columnBombs[j]--; totalBombs--;
+			}
 		}
 	}
 }
