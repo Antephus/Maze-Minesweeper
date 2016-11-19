@@ -1,10 +1,11 @@
 #include <iostream>
 #include <time.h>
-
+// blahb lhs bjkgfe
+//Excellent
 using namespace std;
 
-const int ROWS = 8;
-const int COLS = 8;
+const int ROWS = 4;
+const int COLS = 4;
 
 class Square
 {
@@ -78,7 +79,7 @@ int main()
 
 void generateBoard(Square board[ROWS][COLS])
 {
-	int totalBombs = ROWS * COLS / 2;
+	int totalBombs = ROWS * 2;
 	int rowBombs = ROWS - 1;
 	int columnBombs[COLS];
 	for (int column = 0; column < COLS; column++)
@@ -91,10 +92,7 @@ void generateBoard(Square board[ROWS][COLS])
 
 		for (int j = 0; j < COLS; j++)
 		{
-			bool setTo = false;
-			int willBeBomb = rand() % 2;
-			if (willBeBomb == 0 ) setTo = true;
-
+			bool setTo = rand() % 2;
 			if (rowBombs > 0 && columnBombs[j] > 0 && totalBombs > 0 && setTo == true)
 			{
 				board[i][j].setBomb(setTo);
