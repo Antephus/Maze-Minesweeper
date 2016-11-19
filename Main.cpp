@@ -51,6 +51,11 @@ int Square::getHint()
 	return adjacentBombs;
 }
 
+bool Square::getVisibility()
+{
+	return isHidden;
+}
+
 class player
 {
 private:
@@ -105,10 +110,11 @@ void drawBoard(Square board[ROWS][COLS])
 		{
 			cout << "|";
 			
-			if (board[i][j].getVisibility())
+			if (!board[i][j].getVisibility())
 			{
 				if (board[i][j].getBombStatus() == 1)
 					cout << "*";
+				else cout << " ";
 			}
 			else
 				cout << " ";
