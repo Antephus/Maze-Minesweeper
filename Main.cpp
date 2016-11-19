@@ -105,7 +105,7 @@ void drawBoard(Square board[ROWS][COLS])
 		{
 			cout << "|";
 			
-			if (board[i][j].isHidden() == )
+			if (board[i][j].getVisibility())
 			{
 				if (board[i][j].getBombStatus() == 1)
 					cout << "*";
