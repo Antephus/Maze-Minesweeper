@@ -10,7 +10,7 @@ const int COLS = 4;
 int playerPositionX = 0;
 int playerPositionY = 0;
 
-enum Blocked { Left, Right, Up, Down, UpLeft, UpRight, DownLeft, DownRight };
+enum Blocked { Left, Right, Up, Down, None };
 
 class Square
 {
@@ -19,8 +19,6 @@ private:
 	bool isHidden;
 	bool isOccupied;
 	int adjacentBombs;
-	int playerPositionX;
-	int playerPositionY;
 public:
 	Square();
 	bool getBombStatus();
@@ -144,50 +142,78 @@ void drawBoard(Square board[ROWS][COLS])
 	}
 }
 
+bool checkMovementValidity(int mockPositionX, int mockPositionY)
+{
+	enum Blocked { Left, Right, Up, Down, None };
+	Blocked blockedMove=None;
+	if (mockPositionX > ROWS)
+		blockedMove = Right;
+	else if (mockPositionY > COLS)
+		blockedMove = Down;
+	else if (mockPositionX < 0)
+		blockedMove = Left;
+	else if (mockPositionY < 0)
+		blockedMove = Up;
+	if (blockedMove == None)
+		return 1;
+	else
+		return 0;
+}
+
 void playerMovement()
 {
+	int mockPositionX;
+	int mockPositionY;
 	string playerMove;
 	cout << "Player position is: " << getPlayerPositionX() << ", " << getPlayerPositionY() << endl;
 	cout << "Where do you want to move? ";
 	getline(cin, playerMove);
+	mockPositionX = getPlayerPositionX();
+	mockPositionY = getPlayerPositionY();
 	if (playerMove == "Down")
 	{
-		setPlayerPositionY(getPlayerPositionY() + 1);
+		mockPositionY= mockPositionY + 1;
 	}
 	if (playerMove == "Up")
 	{
-		setPlayerPositionY(getPlayerPositionY() - 1);
+		mockPositionY = mockPositionY - 1;
 	}
 	if (playerMove == "Right")
 	{
-		setPlayerPositionX(getPlayerPositionX() + 1);
+		mockPositionX = mockPositionX + 1;
 	}
 	if (playerMove == "Left")
 	{
-		setPlayerPositionX(getPlayerPositionX() - 1);
+		mockPositionX = mockPositionX - 1;
 	}
 
 	if (playerMove == "UpLeft")
 	{
-		setPlayerPositionY(getPlayerPositionY() - 1);
-		setPlayerPositionX(getPlayerPositionX() - 1);
+		mockPositionY = mockPositionY - 1;
+		mockPositionX = mockPositionX - 1;
 	}
 	if (playerMove == "UpRight")
 	{
-		setPlayerPositionY(getPlayerPositionY() - 1);
-		setPlayerPositionX(getPlayerPositionX() + 1);
+		mockPositionY = mockPositionY - 1;
+		mockPositionX = mockPositionX + 1;
 	}
 	if (playerMove == "DownRight")
 	{
-		setPlayerPositionY(getPlayerPositionY() + 1);
-		setPlayerPositionX(getPlayerPositionX() + 1);
+		mockPositionY = mockPositionY + 1;
+		mockPositionX = mockPositionX + 1;
 	}
 	if (playerMove == "Downleft")
 	{
-		setPlayerPositionY(getPlayerPositionY() + 1);
-		setPlayerPositionX(getPlayerPositionX() - 1);
+		mockPositionY = mockPositionY + 1;
+		mockPositionX = mockPositionX - 1;
 	}
-
+	if (checkMovementValidity(mockPositionX, mockPositionY) == true)
+	{
+		setPlayerPositionX(mockPositionX);
+		setPlayerPositionY(mockPositionY);
+	}
+	else
+		cout << "Invalid move!";
 }
 
 int calculateAdjacentBombs(int chosenRow, int chosenCol, Square board[ROWS][COLS])
