@@ -1,6 +1,7 @@
 #include <iostream>
 #include <time.h>
 #include <string>
+#include <windows.h>
 
 using namespace std;
 
@@ -90,7 +91,7 @@ void drawBoard(Square board[ROWS][COLS]);
 void playerMovement();
 void setHint(Square board[ROWS][COLS], int, int);
 
-int main()
+void runGame()
 {
 	srand(time(NULL));
 	Square board[ROWS][COLS];
@@ -100,7 +101,91 @@ int main()
 	{
 		playerMovement();
 	}
-	return 0;
+}
+
+void clearScreen()
+{
+	cout << "\033[2J\033[1;1H";
+}
+
+void mainMenu()
+{
+	string menuChoices[4] = { "Single Player", "Multi-Player", "About", "Exit" };
+	int pointer = 0;
+
+	while (true)
+	{
+		system("cls");
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
+		cout << "Maze-Minesweeper\n\n";
+		for (int i = 0; i < 4; ++i)
+		{
+			if (i == pointer)
+			{
+				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 11);
+				cout << menuChoices[i] << endl;
+			}
+			else
+			{
+				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15);
+				cout << menuChoices[i] << endl;
+			}
+		}
+		while (true)
+		{
+			if (GetAsyncKeyState(VK_UP) != 0)
+			{
+				pointer --;
+				if (pointer == -1)
+				{
+					pointer = 3;
+				}
+				break;
+			}
+			else if (GetAsyncKeyState(VK_DOWN) != 0)
+			{
+				pointer ++;
+				if (pointer == 4)
+				{
+					pointer = 0;
+				}
+				break;
+			}
+			else if (GetAsyncKeyState(VK_RETURN) != 0)
+			{
+				switch (pointer)
+				{
+					case 0:
+					{
+						cout << "\n\n\nStarting new game...";
+						Sleep(1000);
+						clearScreen();
+						runGame();
+					} break;
+					case 1:
+					{
+						cout << "\n\n\nThis is the mutli-player...";
+						Sleep(1000);
+					} break;
+					case 2:
+					{
+						cout << "\n\n\nThis is the about page...";
+						Sleep(1000);
+					} break;
+					case 3:
+					{
+						SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15); //Reset Colours
+						cout << "\n\n\nGood bye :)\n";
+						Sleep(1000);
+						exit(0);
+					} break;
+				}
+				break;
+			}
+		}
+
+		Sleep(150);
+	}
 }
 
 void generateBoard(Square board[ROWS][COLS])
@@ -167,6 +252,7 @@ void playerMovement()
 	string playerMove;
 	cout << "Player position is: " << getPlayerPositionX() << ", " << getPlayerPositionY() << endl;
 	cout << "Where do you want to move? ";
+	cin.ignore(); //Flushes cin :)
 	getline(cin, playerMove);
 	mockPositionX = getPlayerPositionX();
 	mockPositionY = getPlayerPositionY();
@@ -243,4 +329,10 @@ int calculateAdjacentBombs(int chosenRow, int chosenCol, Square board[ROWS][COLS
 	}
 
 	return bombCount;
+}
+
+int main()
+{
+	mainMenu();
+	return 0;
 }
