@@ -1,6 +1,7 @@
 #include <iostream>
 #include <time.h>
 // blahb lhs bjkgfe
+//Excellent
 using namespace std;
 
 const int ROWS = 4;
@@ -104,9 +105,11 @@ void drawBoard(Square board[ROWS][COLS])
 		{
 			cout << "|";
 			
-			if (board[i][j].getBombStatus() == 1)
-				cout << "*";
-			
+			if (board[i][j].isHidden() == )
+			{
+				if (board[i][j].getBombStatus() == 1)
+					cout << "*";
+			}
 			else
 				cout << " ";
 
@@ -120,28 +123,25 @@ void drawBoard(Square board[ROWS][COLS])
 int calculateAdjacentBombs(int chosenRow, int chosenCol, Square board[ROWS][COLS])
 {
 	int bombCount = 0;
-	int currentRow = chosenRow - 1;
-	int currentCol = chosenCol - 1;
+	int scanRow = chosenRow - 1;
+	int scanCol = chosenCol - 1;
 
-	// For every row around the chosen square, as long as we're not at the top/bottom edge of the board...
-	for (int row = 0; row <= 3; row++)
+	for(int i = 0; i < 3; i++)
 	{
-		if (currentRow >= 0 && currentRow <= ROWS)
+		if (scanRow + i < 0) i++; //Skip row if out of bounds
+		if (scanRow + i < ROWS)
 		{
-			// For every column around the chosen square, as long as we're not at the right/left edge of the board...
-			for (int col = 0; col <= 3; col++)
-			{
-				if (currentCol >= 0 && currentCol <= COLS)
-				{
-					// If the current square isn't the one originally selected, and it has a bomb, add 1 to the bomb counter
-					if (!(currentRow == chosenRow && currentCol == chosenCol) && board[currentRow][currentCol].getBombStatus())
+			for(int j = 0; j < 3; j++)
+			{	
+				if (scanCol + j < 0) j++; //Skip cell if out of bounds
+				if (i == 1 && j == 1) j++; //Skip cell if same as given cell
+				if (scanRow + j < COLS)
+				{			
+					if(board[scanRow + i][ scanCol + j].getBombStatus())
 						bombCount++;
 				}
-				col++;
 			}
 		}
-		row++;
 	}
-
 	return bombCount;
 }
