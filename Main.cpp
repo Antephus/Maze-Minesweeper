@@ -1,11 +1,16 @@
 #include <iostream>
 #include <time.h>
-// blahb lhs bjkgfe
-//Excellent
+#include <string>
+
 using namespace std;
 
 const int ROWS = 4;
 const int COLS = 4;
+
+int playerPositionX = 0;
+int playerPositionY = 0;
+
+enum Blocked { Left, Right, Up, Down, UpLeft, UpRight, DownLeft, DownRight };
 
 class Square
 {
@@ -14,6 +19,8 @@ private:
 	bool isHidden;
 	bool isOccupied;
 	int adjacentBombs;
+	int playerPositionX;
+	int playerPositionY;
 public:
 	Square();
 	bool getBombStatus();
@@ -51,10 +58,26 @@ int Square::getHint()
 	return adjacentBombs;
 }
 
-bool Square::getVisibility()
+int getPlayerPositionX()
 {
-	return isHidden;
+	return playerPositionX;
 }
+
+int getPlayerPositionY()
+{
+	return playerPositionY;
+}
+
+void setPlayerPositionX(int newX)
+{
+	playerPositionX=newX;
+}
+
+void setPlayerPositionY(int newY)
+{
+	playerPositionY=newY;
+}
+
 
 class player
 {
@@ -66,6 +89,7 @@ public:
 
 void generateBoard(Square board[ROWS][COLS]);
 void drawBoard(Square board[ROWS][COLS]);
+void playerMovement();
 void setHint(Square board[ROWS][COLS], int, int);
 
 int main()
@@ -74,6 +98,10 @@ int main()
 	Square board[ROWS][COLS];
 	generateBoard(board);
 	drawBoard(board);
+	while (true)
+	{
+		playerMovement();
+	}
 	return 0;
 }
 
@@ -108,46 +136,85 @@ void drawBoard(Square board[ROWS][COLS])
 	{
 		for (int j = 0; j < COLS; j++)
 		{
-			cout << "|";
-			
-			if (!board[i][j].getVisibility())
-			{
-				if (board[i][j].getBombStatus() == 1)
-					cout << "*";
-				else cout << " ";
-			}
-			else
-				cout << " ";
-
-			cout << "|";
+			cout << "|"
+				<< board[i][j].getBombStatus()
+				<< "|";
 		}
 		cout << endl;
 	}
 }
 
+void playerMovement()
+{
+	string playerMove;
+	cout << "Player position is: " << getPlayerPositionX() << ", " << getPlayerPositionY() << endl;
+	cout << "Where do you want to move? ";
+	getline(cin, playerMove);
+	if (playerMove == "Down")
+	{
+		setPlayerPositionY(getPlayerPositionY() + 1);
+	}
+	if (playerMove == "Up")
+	{
+		setPlayerPositionY(getPlayerPositionY() - 1);
+	}
+	if (playerMove == "Right")
+	{
+		setPlayerPositionX(getPlayerPositionX() + 1);
+	}
+	if (playerMove == "Left")
+	{
+		setPlayerPositionX(getPlayerPositionX() - 1);
+	}
+
+	if (playerMove == "UpLeft")
+	{
+		setPlayerPositionY(getPlayerPositionY() - 1);
+		setPlayerPositionX(getPlayerPositionX() - 1);
+	}
+	if (playerMove == "UpRight")
+	{
+		setPlayerPositionY(getPlayerPositionY() - 1);
+		setPlayerPositionX(getPlayerPositionX() + 1);
+	}
+	if (playerMove == "DownRight")
+	{
+		setPlayerPositionY(getPlayerPositionY() + 1);
+		setPlayerPositionX(getPlayerPositionX() + 1);
+	}
+	if (playerMove == "Downleft")
+	{
+		setPlayerPositionY(getPlayerPositionY() + 1);
+		setPlayerPositionX(getPlayerPositionX() - 1);
+	}
+
+}
 
 int calculateAdjacentBombs(int chosenRow, int chosenCol, Square board[ROWS][COLS])
 {
 	int bombCount = 0;
-	int scanRow = chosenRow - 1;
-	int scanCol = chosenCol - 1;
+	int currentRow = chosenRow - 1;
+	int currentCol = chosenCol - 1;
 
-	for(int i = 0; i < 3; i++)
+	// For every row around the chosen square, as long as we're not at the top/bottom edge of the board...
+	for (int row = 0; row <= 3; row++)
 	{
-		if (scanRow + i < 0) i++; //Skip row if out of bounds
-		if (scanRow + i < ROWS)
+		if (currentRow >= 0 && currentRow <= ROWS)
 		{
-			for(int j = 0; j < 3; j++)
-			{	
-				if (scanCol + j < 0) j++; //Skip cell if out of bounds
-				if (i == 1 && j == 1) j++; //Skip cell if same as given cell
-				if (scanRow + j < COLS)
-				{			
-					if(board[scanRow + i][ scanCol + j].getBombStatus())
+			// For every column around the chosen square, as long as we're not at the right/left edge of the board...
+			for (int col = 0; col <= 3; col++)
+			{
+				if (currentCol >= 0 && currentCol <= COLS)
+				{
+					// If the current square isn't the one originally selected, and it has a bomb, add 1 to the bomb counter
+					if (!(currentRow == chosenRow && currentCol == chosenCol) && board[currentRow][currentCol].getBombStatus())
 						bombCount++;
 				}
+				col++;
 			}
 		}
+		row++;
 	}
+
 	return bombCount;
 }
