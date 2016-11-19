@@ -102,9 +102,15 @@ void drawBoard(Square board[ROWS][COLS])
 	{
 		for (int j = 0; j < COLS; j++)
 		{
-			cout << "|"
-				<< board[i][j].getBombStatus()
-				<< "|";
+			cout << "|";
+			
+			if (board[i][j].getBombStatus() == 1)
+				cout << "*";
+			
+			else
+				cout << " ";
+
+			cout << "|";
 		}
 		cout << endl;
 	}
