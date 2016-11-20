@@ -5,14 +5,10 @@
 
 using namespace std;
 
-const int ROWS = 4;
-const int COLS = 4;
-
 int playerPositionX = 0;
 int playerPositionY = 0;
 
-enum Blocked { Left, Right, Up, Down, None };
-
+// Class definitions
 class Square
 {
 private:
@@ -23,12 +19,44 @@ private:
 public:
 	Square();
 	bool getBombStatus();
-	void setBomb(bool);
-	void setHint(int);
-	bool getVisibility();
+	void setBomb(bool bombStatus);
+	void setHint(int bombCount);
 	int getHint();
+	bool getVisibility();
+	void setVisibility(bool visibility);
+	void setOccupancy(bool occupancy);
+	bool getOccupancy();
 };
 
+class Board
+{
+private:
+	int rows;
+	int cols;
+	Square** board;
+public:
+	Board();
+	Board(int rows, int cols);
+	int getRows();
+	int getCols();
+	void generateBoard();
+	void drawBoard();
+	void calculateHints();
+};
+
+
+class player
+{
+private:
+
+public:
+
+};
+
+
+
+
+// Square class definitions
 Square::Square()
 {
 	isBomb = false;
@@ -57,6 +85,26 @@ int Square::getHint()
 	return adjacentBombs;
 }
 
+bool Square::getVisibility()
+{
+	return isHidden;
+}
+
+void Square::setVisibility(bool newVisibility)
+{
+	isHidden = newVisibility;
+}
+
+void Square::setOccupancy(bool newOccupancy)
+{
+	isOccupied = newOccupancy;
+}
+
+bool Square::getOccupancy()
+{
+	return isOccupied;
+}
+
 int getPlayerPositionX()
 {
 	return playerPositionX;
@@ -69,34 +117,238 @@ int getPlayerPositionY()
 
 void setPlayerPositionX(int newX)
 {
-	playerPositionX=newX;
+	playerPositionX = newX;
 }
 
 void setPlayerPositionY(int newY)
 {
-	playerPositionY=newY;
+	playerPositionY = newY;
 }
 
 
-class player
+// Board class definitions
+Board::Board()
 {
-private:
+	rows = 8;
+	cols = 8;
+	board = new Square*[rows];
+	for (int i = 0; i < rows; ++i)
+		board[i] = new Square[cols];
+}
 
-public:
+Board::Board(int givenRows, int givenCols)
+{
+	rows = givenRows;
+	cols = givenCols;
+	board = new Square*[rows];
+	for (int i = 0; i < rows; ++i)
+		board[i] = new Square[cols];
+}
 
-};
+int Board::getRows()
+{
+	return rows;
+}
 
-void generateBoard(Square board[ROWS][COLS]);
-void drawBoard(Square board[ROWS][COLS]);
-void playerMovement();
-void setHint(Square board[ROWS][COLS], int, int);
+int Board::getCols()
+{
+	return cols;
+}
+
+void Board::generateBoard()
+{
+	int totalBombs = rows * cols / 2;
+	int rowBombs = rows - 1;
+	int * columnBombs = new int[cols];
+	for (int column = 0; column < cols; column++)
+		columnBombs[column] = cols - 1;
+
+	for (int i = 0; i < rows; i++)
+	{
+		if (totalBombs > 0)
+		{
+			rowBombs = rows - 1;
+		}
+
+		for (int j = 0; j < cols; j++)
+		{
+			bool isBomb = false;
+			int willBeBomb = rand() % 2;
+			if (willBeBomb == 0)
+				isBomb = true;
+
+			if (rowBombs > 0 && columnBombs[j] > 0 && totalBombs > 0 && isBomb == true)
+			{
+				board[i][j].setBomb(isBomb);
+				rowBombs--;
+				columnBombs[j]--;
+				totalBombs--;
+			}
+		}
+	}
+}
+
+void Board::drawBoard()
+{
+	for (int i = 0; i < rows; i++)
+	{
+		for (int j = 0; j < cols; j++)
+		{
+			cout << "|";
+
+			if (!board[i][j].getVisibility())
+			{
+				if (board[i][j].getBombStatus() == 1)
+					cout << "*";
+				else cout << " ";
+			}
+			else
+				cout << " ";
+
+			cout << "|";
+		}
+		cout << endl;
+	}
+	/*cout << "hint:" << board[0][0].getHint() << "  --  hint:" << board[0][1].getHint() << " -- hint:" << board[0][2].getHint() << " -- hint:" << board[0][3].getHint();
+	cout << " -- hint:" << board[0][4].getHint() << " -- hint:" << board[0][5].getHint();*/
+}
+
+void Board::calculateHints()
+{
+	int bombCount = 0;
+	int currentRow = 0;
+	int currentCol = 0;
+
+	// For every square in the array...
+	for (int r = 0; r < rows; r++)
+	{
+		for (int c = 0; c < cols; c++)
+		{
+			// Check all surrounding squares for bombs and add to counter when one found
+			bombCount = 0;
+			for (int i = -1; i < 2; i++)
+			{
+				if (currentRow + i < 0)
+				{
+					continue; //Skip row if out of bounds
+				}
+				if (currentRow + i < rows)
+				{
+					//
+					for (int j = -1; j < 2; j++)
+					{
+						if (currentCol + j < 0)
+						{
+							continue; //Skip cell if out of bounds
+						}
+						if (i == 0 && j == 0)
+						{
+							continue; //Skip cell if same as given cell
+						}
+						if (currentRow + j < cols)
+						{
+							if (board[currentRow + i][currentCol + j].getBombStatus())
+							{
+								bombCount++;
+							}
+						}
+					}
+				}
+			}
+			// One the bomb count is found, set the hint for the current square and move on to the next square
+			board[currentRow][currentCol].setHint(bombCount);
+			currentCol++;
+		}
+		currentRow++;
+	}
+}
+
+
+bool checkMovementValidity(int mockPositionX, int mockPositionY)
+{
+	Board board;
+	enum Blocked { Left, Right, Up, Down, None };
+	Blocked blockedMove = None;
+	if (mockPositionX > board.getRows())
+		blockedMove = Right;
+	else if (mockPositionY > board.getCols())
+		blockedMove = Down;
+	else if (mockPositionX < 0)
+		blockedMove = Left;
+	else if (mockPositionY < 0)
+		blockedMove = Up;
+	if (blockedMove == None)
+		return 1;
+	else
+		return 0;
+}
+
+void playerMovement()
+{
+	int mockPositionX;
+	int mockPositionY;
+	string playerMove;
+	cout << "Player position is: " << getPlayerPositionX() << ", " << getPlayerPositionY() << endl;
+	cout << "Where do you want to move? ";
+	getline(cin, playerMove);
+	mockPositionX = getPlayerPositionX();
+	mockPositionY = getPlayerPositionY();
+	if (playerMove == "Down")
+	{
+		mockPositionY = mockPositionY + 1;
+	}
+	else if (playerMove == "Up")
+	{
+		mockPositionY = mockPositionY - 1;
+	}
+	else if (playerMove == "Right")
+	{
+		mockPositionX = mockPositionX + 1;
+	}
+	else if (playerMove == "Left")
+	{
+		mockPositionX = mockPositionX - 1;
+	}
+
+	else if (playerMove == "UpLeft")
+	{
+		mockPositionY = mockPositionY - 1;
+		mockPositionX = mockPositionX - 1;
+	}
+	else if (playerMove == "UpRight")
+	{
+		mockPositionY = mockPositionY - 1;
+		mockPositionX = mockPositionX + 1;
+	}
+	else if (playerMove == "DownRight")
+	{
+		mockPositionY = mockPositionY + 1;
+		mockPositionX = mockPositionX + 1;
+	}
+	else if (playerMove == "DownLeft")
+	{
+		mockPositionY = mockPositionY + 1;
+		mockPositionX = mockPositionX - 1;
+	}
+	else
+		cout << "Invalid move!";
+	if (checkMovementValidity(mockPositionX, mockPositionY))
+	{
+		setPlayerPositionX(mockPositionX);
+		setPlayerPositionY(mockPositionY);
+	}
+	else
+		cout << "Invalid move!";
+}
 
 void runGame()
 {
+	bool stop = false;
+	Board Level1 = Board();
 	srand(time(NULL));
-	Square board[ROWS][COLS];
-	generateBoard(board);
-	drawBoard(board);
+	Level1.generateBoard();
+	Level1.calculateHints();
+	Level1.drawBoard();
 	while (true)
 	{
 		playerMovement();
@@ -135,7 +387,7 @@ void mainMenu()
 		{
 			if (GetAsyncKeyState(VK_UP) != 0)
 			{
-				pointer --;
+				pointer--;
 				if (pointer == -1)
 				{
 					pointer = 3;
@@ -144,7 +396,7 @@ void mainMenu()
 			}
 			else if (GetAsyncKeyState(VK_DOWN) != 0)
 			{
-				pointer ++;
+				pointer++;
 				if (pointer == 4)
 				{
 					pointer = 0;
@@ -155,30 +407,31 @@ void mainMenu()
 			{
 				switch (pointer)
 				{
-					case 0:
-					{
-						cout << "\n\n\nStarting new game...";
-						Sleep(1000);
-						clearScreen();
-						runGame();
-					} break;
-					case 1:
-					{
-						cout << "\n\n\nThis is the mutli-player...";
-						Sleep(1000);
-					} break;
-					case 2:
-					{
-						cout << "\n\n\nThis is the about page...";
-						Sleep(1000);
-					} break;
-					case 3:
-					{
-						SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15); //Reset Colours
-						cout << "\n\n\nGood bye :)\n";
-						Sleep(1000);
-						exit(0);
-					} break;
+				case 0:
+				{
+					cout << "\n\n\nStarting new game...";
+					Sleep(1000);
+					clearScreen();
+					cin.ignore();
+					runGame();
+				} break;
+				case 1:
+				{
+					cout << "\n\n\nThis is the mutli-player...";
+					Sleep(1000);
+				} break;
+				case 2:
+				{
+					cout << "\n\n\nThis is the about page...";
+					Sleep(1000);
+				} break;
+				case 3:
+				{
+					SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 15); //Reset Colours
+					cout << "\n\n\nGood bye :)\n";
+					Sleep(1000);
+					exit(0);
+				} break;
 				}
 				break;
 			}
@@ -188,151 +441,10 @@ void mainMenu()
 	}
 }
 
-void generateBoard(Square board[ROWS][COLS])
-{
-	int totalBombs = ROWS * 2;
-	int rowBombs = ROWS - 1;
-	int columnBombs[COLS];
-	for (int column = 0; column < COLS; column++)
-		columnBombs[column] = COLS - 1;
-
-	for (int i = 0; i < ROWS; i++)
-	{
-		if (totalBombs > 0)
-			rowBombs = ROWS - 1;
-
-		for (int j = 0; j < COLS; j++)
-		{
-			bool setTo = rand() % 2;
-			if (rowBombs > 0 && columnBombs[j] > 0 && totalBombs > 0 && setTo == true)
-			{
-				board[i][j].setBomb(setTo);
-				rowBombs--; columnBombs[j]--; totalBombs--;
-			}
-		}
-	}
-}
-
-void drawBoard(Square board[ROWS][COLS])
-{
-	for (int i = 0; i < ROWS; i++)
-	{
-		for (int j = 0; j < COLS; j++)
-		{
-			cout << "|"
-				<< board[i][j].getBombStatus()
-				<< "|";
-		}
-		cout << endl;
-	}
-}
-
-bool checkMovementValidity(int mockPositionX, int mockPositionY)
-{
-	enum Blocked { Left, Right, Up, Down, None };
-	Blocked blockedMove=None;
-	if (mockPositionX > ROWS)
-		blockedMove = Right;
-	else if (mockPositionY > COLS)
-		blockedMove = Down;
-	else if (mockPositionX < 0)
-		blockedMove = Left;
-	else if (mockPositionY < 0)
-		blockedMove = Up;
-	if (blockedMove == None)
-		return 1;
-	else
-		return 0;
-}
-
-void playerMovement()
-{
-	int mockPositionX;
-	int mockPositionY;
-	string playerMove;
-	cout << "Player position is: " << getPlayerPositionX() << ", " << getPlayerPositionY() << endl;
-	cout << "Where do you want to move? ";
-	cin.ignore(); //Flushes cin :)
-	getline(cin, playerMove);
-	mockPositionX = getPlayerPositionX();
-	mockPositionY = getPlayerPositionY();
-	if (playerMove == "Down")
-	{
-		mockPositionY= mockPositionY + 1;
-	}
-	if (playerMove == "Up")
-	{
-		mockPositionY = mockPositionY - 1;
-	}
-	if (playerMove == "Right")
-	{
-		mockPositionX = mockPositionX + 1;
-	}
-	if (playerMove == "Left")
-	{
-		mockPositionX = mockPositionX - 1;
-	}
-
-	if (playerMove == "UpLeft")
-	{
-		mockPositionY = mockPositionY - 1;
-		mockPositionX = mockPositionX - 1;
-	}
-	if (playerMove == "UpRight")
-	{
-		mockPositionY = mockPositionY - 1;
-		mockPositionX = mockPositionX + 1;
-	}
-	if (playerMove == "DownRight")
-	{
-		mockPositionY = mockPositionY + 1;
-		mockPositionX = mockPositionX + 1;
-	}
-	if (playerMove == "Downleft")
-	{
-		mockPositionY = mockPositionY + 1;
-		mockPositionX = mockPositionX - 1;
-	}
-	if (checkMovementValidity(mockPositionX, mockPositionY) == true)
-	{
-		setPlayerPositionX(mockPositionX);
-		setPlayerPositionY(mockPositionY);
-	}
-	else
-		cout << "Invalid move!";
-}
-
-int calculateAdjacentBombs(int chosenRow, int chosenCol, Square board[ROWS][COLS])
-{
-	int bombCount = 0;
-	int currentRow = chosenRow - 1;
-	int currentCol = chosenCol - 1;
-
-	// For every row around the chosen square, as long as we're not at the top/bottom edge of the board...
-	for (int row = 0; row <= 3; row++)
-	{
-		if (currentRow >= 0 && currentRow <= ROWS)
-		{
-			// For every column around the chosen square, as long as we're not at the right/left edge of the board...
-			for (int col = 0; col <= 3; col++)
-			{
-				if (currentCol >= 0 && currentCol <= COLS)
-				{
-					// If the current square isn't the one originally selected, and it has a bomb, add 1 to the bomb counter
-					if (!(currentRow == chosenRow && currentCol == chosenCol) && board[currentRow][currentCol].getBombStatus())
-						bombCount++;
-				}
-				col++;
-			}
-		}
-		row++;
-	}
-
-	return bombCount;
-}
-
 int main()
 {
+
+
 	mainMenu();
 	return 0;
 }
