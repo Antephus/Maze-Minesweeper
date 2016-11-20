@@ -125,6 +125,7 @@ void setPlayerPositionY(int newY)
 	playerPositionY = newY;
 }
 
+void finishLevel();
 
 // Board class definitions
 Board::Board()
@@ -269,9 +270,12 @@ bool checkMovementValidity(int mockPositionX, int mockPositionY)
 	Board board;
 	enum Blocked { Left, Right, Up, Down, None };
 	Blocked blockedMove = None;
-	if (mockPositionX > board.getRows())
-		blockedMove = Right;
-	else if (mockPositionY > board.getCols())
+	if (getPlayerPositionX() != board.getRows() || getPlayerPositionY() != board.getCols() - 1)
+	{
+		if (mockPositionX > board.getRows())
+			blockedMove = Right;
+	}
+	if (mockPositionY > board.getCols())
 		blockedMove = Down;
 	else if (mockPositionX < 0)
 		blockedMove = Left;
@@ -291,6 +295,7 @@ void playerMovement()
 	cout << "Player position is: " << getPlayerPositionX() << ", " << getPlayerPositionY() << endl;
 	cout << "Where do you want to move? ";
 	getline(cin, playerMove);
+
 	mockPositionX = getPlayerPositionX();
 	mockPositionY = getPlayerPositionY();
 	if (playerMove == "Down")
@@ -339,10 +344,16 @@ void playerMovement()
 	}
 	else
 		cout << "Invalid move!";
+
+	finishLevel();
+
+
 }
 
 void runGame()
 {
+
+
 	bool stop = false;
 	Board Level1 = Board();
 	srand(time(NULL));
@@ -353,6 +364,8 @@ void runGame()
 	{
 		playerMovement();
 	}
+
+
 }
 
 void clearScreen()
@@ -447,4 +460,23 @@ int main()
 
 	mainMenu();
 	return 0;
+}
+
+void finishLevel()
+{
+	Board board;
+
+	if (getPlayerPositionX() == board.getRows() && getPlayerPositionY() == board.getCols())
+	{
+		cout << endl << endl << endl << "Well done, you completed the level!" << endl << endl;
+
+
+		Sleep(2000);
+
+
+
+
+
+	}
+
 }
