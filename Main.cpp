@@ -5,8 +5,8 @@
 
 using namespace std;
 
-int playerPositionX = 0;
-int playerPositionY = 0;
+int playerPositionX = 1;
+int playerPositionY = 1;
 
 // Class definitions
 class Square
@@ -42,6 +42,7 @@ public:
 	void generateBoard();
 	void drawBoard();
 	void calculateHints();
+	Square Board::getSquare(int row, int col);
 };
 
 
@@ -155,6 +156,11 @@ int Board::getCols()
 	return cols;
 }
 
+Square Board::getSquare(int row, int col)
+{
+	return board[row][col];
+}
+
 void Board::generateBoard()
 {
 	int totalBombs = rows * cols / 2;
@@ -192,6 +198,7 @@ void Board::drawBoard()
 {
 	for (int i = 0; i < rows; i++)
 	{
+		cout << i + 1;
 		for (int j = 0; j < cols; j++)
 		{
 			cout << "|";
@@ -209,8 +216,7 @@ void Board::drawBoard()
 		}
 		cout << endl;
 	}
-	/*cout << "hint:" << board[0][0].getHint() << "  --  hint:" << board[0][1].getHint() << " -- hint:" << board[0][2].getHint() << " -- hint:" << board[0][3].getHint();
-	cout << " -- hint:" << board[0][4].getHint() << " -- hint:" << board[0][5].getHint();*/
+	cout << endl;
 }
 
 void Board::calculateHints()
@@ -270,42 +276,42 @@ bool checkMovementValidity(int mockPositionX, int mockPositionY)
 	enum Blocked { Left, Right, Up, Down, None };
 	Blocked blockedMove = None;
 	if (mockPositionX > board.getRows())
-		blockedMove = Right;
-	else if (mockPositionY > board.getCols())
 		blockedMove = Down;
-	else if (mockPositionX < 0)
-		blockedMove = Left;
-	else if (mockPositionY < 0)
+	else if (mockPositionY > board.getCols())
+		blockedMove = Right;
+	else if (mockPositionX < 1)
 		blockedMove = Up;
+	else if (mockPositionY < 1)
+		blockedMove = Left;
 	if (blockedMove == None)
 		return 1;
 	else
 		return 0;
 }
 
-void playerMovement()
+void playerMovement(Board boardDimensions)
 {
 	int mockPositionX;
 	int mockPositionY;
 	string playerMove;
-	cout << "Player position is: " << getPlayerPositionX() << ", " << getPlayerPositionY() << endl;
+	cout << "Player position is: " << getPlayerPositionY() << ", " << getPlayerPositionX() << endl;
 	cout << "Where do you want to move? ";
 	getline(cin, playerMove);
 	mockPositionX = getPlayerPositionX();
 	mockPositionY = getPlayerPositionY();
-	if (playerMove == "Down")
+	if (playerMove == "Right")
 	{
 		mockPositionY = mockPositionY + 1;
 	}
-	else if (playerMove == "Up")
+	else if (playerMove == "Left")
 	{
 		mockPositionY = mockPositionY - 1;
 	}
-	else if (playerMove == "Right")
+	else if (playerMove == "Down")
 	{
 		mockPositionX = mockPositionX + 1;
 	}
-	else if (playerMove == "Left")
+	else if (playerMove == "Up")
 	{
 		mockPositionX = mockPositionX - 1;
 	}
@@ -317,8 +323,8 @@ void playerMovement()
 	}
 	else if (playerMove == "UpRight")
 	{
-		mockPositionY = mockPositionY - 1;
-		mockPositionX = mockPositionX + 1;
+		mockPositionY = mockPositionY + 1;
+		mockPositionX = mockPositionX - 1;
 	}
 	else if (playerMove == "DownRight")
 	{
@@ -327,8 +333,13 @@ void playerMovement()
 	}
 	else if (playerMove == "DownLeft")
 	{
-		mockPositionY = mockPositionY + 1;
-		mockPositionX = mockPositionX - 1;
+		mockPositionY = mockPositionY - 1;
+		mockPositionX = mockPositionX + 1;
+	}
+	else if (playerMove == "Exit")
+	{
+		cout << "Good bye :)"<<endl;
+		exit(0);
 	}
 	else
 		cout << "Invalid move!";
@@ -336,13 +347,38 @@ void playerMovement()
 	{
 		setPlayerPositionX(mockPositionX);
 		setPlayerPositionY(mockPositionY);
+
+		for (int i = 0; i < boardDimensions.getRows(); i++)
+		{
+			for (int j = 0; j < boardDimensions.getCols(); j++)
+			{
+				if (boardDimensions.getSquare(i, j).getBombStatus() && i + 1 == getPlayerPositionX() && j + 1 == getPlayerPositionY())
+				{
+					cout << "You died..." << endl;
+				}
+			}
+		}
 	}
 	else
 		cout << "Invalid move!";
 }
 
+void changeGameFont()
+{
+	CONSOLE_FONT_INFOEX cfi;
+	cfi.cbSize = sizeof(cfi);
+	cfi.nFont = 0;
+	cfi.dwFontSize.X = 0;                   // Width of each character in the font
+	cfi.dwFontSize.Y = 24;                  // Height
+	cfi.FontFamily = FF_DONTCARE;
+	cfi.FontWeight = FW_NORMAL;
+	wcscpy_s(cfi.FaceName, L"Consolas"); // Choose your font
+	SetCurrentConsoleFontEx(GetStdHandle(STD_OUTPUT_HANDLE), FALSE, &cfi);
+}
+
 void runGame()
 {
+	changeGameFont();
 	bool stop = false;
 	Board Level1 = Board();
 	srand(time(NULL));
@@ -351,7 +387,7 @@ void runGame()
 	Level1.drawBoard();
 	while (true)
 	{
-		playerMovement();
+		playerMovement(Level1);
 	}
 }
 
