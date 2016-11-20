@@ -22,15 +22,14 @@ public:
 	void setVisibility(bool visibility);
 	void setOccupancy(bool occupancy);
 	bool getOccupancy();
-	int calculateHint(int, int, Board);
 };
 
 class Board
 {
 private:
-	const int rows;
+	int rows;
 	int cols;
-	Square board[rows][cols];
+	Square** board;
 public:
 	Board();
 	Board(int rows, int cols);
@@ -38,7 +37,7 @@ public:
 	int getCols();
 	void generateBoard();
 	void drawBoard();
-	int** getBoard();
+	void calculateHints();
 };
 
 
@@ -50,7 +49,7 @@ public:
 
 };
 
-// Constructors
+// Square class definitions
 Square::Square()
 {
 	isBomb = false;
@@ -59,22 +58,6 @@ Square::Square()
 	adjacentBombs = 0;
 }
 
-Board::Board()
-{
-	rows = 8;
-	cols = 8;
-	board[rows][cols] = { 0 };
-}
-
-Board::Board(int givenRows, int givenCols)
-{
-	rows = givenRows;
-	cols = givenCols;
-	board[rows][cols] = { 0 };
-}
-
-
-// Square class function definitions
 bool Square::getBombStatus()
 {
 	return isBomb;
@@ -102,7 +85,7 @@ bool Square::getVisibility()
 
 void Square::setVisibility(bool newVisibility)
 {
-	isHidden = newVisbility;
+	isHidden = newVisibility;
 }
 
 void Square::setOccupancy(bool newOccupancy)
@@ -115,35 +98,26 @@ bool Square::getOccupancy()
 	return isOccupied;
 }
 
-int Square::calculateHint(int chosenRow, int chosenCol, Board currentBoard)
-{
-	int bombCount = 0;
-	int scanRow = chosenRow - 1;
-	int scanCol = chosenCol - 1;
-	Square squares[currentBoard.getRows()][currentBoard.getCols()] = currentBoard.getBoard();
 
-	for (int i = 0; i < 3; i++)
-	{
-		if (scanRow + i < 0) i++; //Skip row if out of bounds
-		if (scanRow + i < currentBoard.getRows())
-		{
-			for (int j = 0; j < 3; j++)
-			{
-				if (scanCol + j < 0) j++; //Skip cell if out of bounds
-				if (i == 1 && j == 1) j++; //Skip cell if same as given cell
-				if (scanRow + j < currentBoard.getCols())
-				{
-					if (currentBoard.getBoard()[scanRow + i][scanCol + j].getBombStatus())
-						bombCount++;
-				}
-			}
-		}
-	}
-	return bombCount;
+// Board class definitions
+Board::Board()
+{
+	rows = 8;
+	cols = 8;
+	board = new Square*[rows];
+	for (int i = 0; i < rows; ++i)
+		board[i] = new Square[cols];
 }
 
+Board::Board(int givenRows, int givenCols)
+{
+	rows = givenRows;
+	cols = givenCols;
+	board = new Square*[rows];
+	for (int i = 0; i < rows; ++i)
+		board[i] = new Square[cols];
+}
 
-// Board class method definitions
 int Board::getRows()
 {
 	return rows;
@@ -154,34 +128,34 @@ int Board::getCols()
 	return cols;
 }
 
-int** Board::getBoard()
-{
-	return board;
-}
-
 void Board::generateBoard()
 {
 	int totalBombs = rows * cols / 2;
 	int rowBombs = rows - 1;
-	int columnBombs[cols];
+	int * columnBombs = new int[cols];
 	for (int column = 0; column < cols; column++)
 		columnBombs[column] = cols - 1;
 
 	for (int i = 0; i < rows; i++)
 	{
 		if (totalBombs > 0)
+		{
 			rowBombs = rows - 1;
+		}
 
 		for (int j = 0; j < cols; j++)
 		{
-			bool setTo = false;
+			bool isBomb = false;
 			int willBeBomb = rand() % 2;
-			if (willBeBomb == 0) setTo = true;
+			if (willBeBomb == 0)
+				isBomb = true;
 
-			if (rowBombs > 0 && columnBombs[j] > 0 && totalBombs > 0 && setTo == true)
+			if (rowBombs > 0 && columnBombs[j] > 0 && totalBombs > 0 && isBomb == true)
 			{
-				board[i][j].setBomb(setTo);
-				rowBombs--; columnBombs[j]--; totalBombs--;
+				board[i][j].setBomb(isBomb);
+				rowBombs--;
+				columnBombs[j]--;
+				totalBombs--;
 			}
 		}
 	}
@@ -208,15 +182,75 @@ void Board::drawBoard()
 		}
 		cout << endl;
 	}
+	/*cout << "hint:" << board[0][0].getHint() << "  --  hint:" << board[0][1].getHint() << " -- hint:" << board[0][2].getHint() << " -- hint:" << board[0][3].getHint();
+	cout << " -- hint:" << board[0][4].getHint() << " -- hint:" << board[0][5].getHint();*/
+}
+
+void Board::calculateHints()
+{
+	int bombCount = 0;
+	int currentRow = 0;
+	int currentCol = 0;
+
+	// For every square in the array...
+	for (int r = 0; r < rows; r++)
+	{
+		for (int c = 0; c < cols; c++)
+		{
+			// Check all surrounding squares for bombs and add to counter when one found
+			bombCount = 0;
+			for (int i = -1; i < 2; i++)
+			{
+				if (currentRow + i < 0)
+				{
+					continue; //Skip row if out of bounds
+				}
+				if (currentRow + i < rows)
+				{
+					//
+					for (int j = -1; j < 2; j++)
+					{
+						if (currentCol + j < 0)
+						{
+							continue; //Skip cell if out of bounds
+						}
+						if (i == 0 && j == 0)
+						{
+							continue; //Skip cell if same as given cell
+						}
+						if (currentRow + j < cols)
+						{
+							if (board[currentRow + i][currentCol + j].getBombStatus())
+							{
+								bombCount++;
+							}
+						}
+					}
+				}
+			}
+			// One the bomb count is found, set the hint for the current square and move on to the next square
+			board[currentRow][currentCol].setHint(bombCount);
+			currentCol++;
+		}
+		currentRow++;
+	}
 }
 
 
 
 int main()
 {
+	bool stop = false;
 	Board Level1 = Board();
 	srand(time(NULL));
-	generateBoard(Level1);
-	drawBoard(Level1);
+	while (!stop)
+	{
+		Level1.generateBoard();
+		Level1.calculateHints();
+		Level1.drawBoard();
+		cout << "0 to keep going, 1 to stop:";
+		cin >> stop;
+	}
+
 	return 0;
 }
